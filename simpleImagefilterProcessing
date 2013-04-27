@@ -1,0 +1,105 @@
+import controlP5.*;
+
+ControlP5 cp5;
+boolean primera;
+PImage imagen;
+PImage filtrada;
+float nuevoAlto;
+float umbral;
+
+void setup() {
+  size(400, 600);  
+
+  filtrada = null;
+  umbral = 128;
+
+  cp5 = new ControlP5(this);
+
+  cp5.addButton("Cargar")
+    .setValue(0)
+      .setPosition(100, 100)
+        .setSize(200, 20);
+
+  cp5.addButton("Guardar")
+    .setValue(0)
+      .setPosition(100, 130)
+        .setSize(200, 20);
+
+  cp5.addSlider("Umbral")
+    .setPosition(100, 500)
+      .setSize(200, 20)
+        .setRange(0, 255)
+          .setValue(128)  
+            .setSliderMode(Slider.FLEXIBLE)    
+              ;
+
+  primera = true;
+}
+
+void draw() {
+  background(0);
+
+  if (imagen != null) {    
+    image(imagen, 100, 160, 200, nuevoAlto);
+    if (filtrada==null) {
+      println("cree imagen filtrada");
+      filtrada = createImage(imagen.width, imagen.height, RGB);
+    }
+    else {
+      imagen.loadPixels();      
+      for (int i = 0 ; i < filtrada.pixels.length ; i++) {
+        float r = red(imagen.pixels[i]);
+        float g = green(imagen.pixels[i]);
+        float b = blue(imagen.pixels[i]);
+        float promedio = (r+g+b)/3;
+        if (promedio<umbral) {
+          filtrada.pixels[i] = color(0, 0, 0);
+        }
+        else {
+          filtrada.pixels[i] = color(255, 255, 255);
+        }
+      }
+      filtrada.updatePixels();
+      image(filtrada, 100, 170 + nuevoAlto, 200, nuevoAlto );
+    }
+  }
+}
+
+
+void controlEvent(ControlEvent theEvent) {
+  String n = theEvent.getController().getName();
+  if (primera) {  
+    if (n.equals("Cargar")) {
+      selectInput("seleccione", "seleccionAbrir");      
+    } 
+    if (n.equals("Guardar")) {
+      selectOutput("seleccione para guardar", "seleccionGuardar");
+    }
+    if (n.equals("Umbral")) {
+      umbral = theEvent.getController().getValue();
+    }
+  }
+}
+
+void seleccionAbrir(File seleccion) {
+  if (seleccion != null) {
+    imagen = loadImage(seleccion.getAbsolutePath());
+    float ancho = imagen.width;
+    float alto = imagen.height;
+    float difAncho = ancho - 200;
+    float percent = (difAncho/ancho);
+    nuevoAlto = alto*(1-percent);
+  } 
+  else {
+    println("... no se cargo una imagen");
+  }
+}
+
+void seleccionGuardar(File seleccion) {
+  if (seleccion != null) {
+    // archivo = seleccion;
+  } 
+  else {
+    println("... no se guardo una imagen");
+  }
+}
